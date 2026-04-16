@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trivia Board Game</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Trivia Board</h1>
+
+    <div class="top-bar">
+      <button id="restart-btn">Restart Game</button>
+      <p id="status">Loading game...</p>
+    </div>
+
+    <div id="game-board" class="board"></div>
+  </div>
+
+  <div id="modal" class="modal hidden">
+    <div class="modal-content">
+      <h2 id="modal-category"></h2>
+      <p id="modal-text"></p>
+      <button id="modal-btn">Show Answer</button>
+      <button id="close-btn" class="secondary">Close</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
