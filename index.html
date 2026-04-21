@@ -10,23 +10,21 @@
   <div class="container">
     <h1>Trivia Board</h1>
 
-    <div class="top-bar">
-      <button id="restart-btn">Restart Game</button>
-      <p id="status">Loading game...</p>
-    </div>
+    <button id="restart-btn">Restart Game</button>
+    <p id="status">Loading game...</p>
 
-    <div id="game-board" class="board"></div>
+    <div id="game-board"></div>
   </div>
 
-  <div id="modal" class="modal hidden">
+  <div id="modal" class="hidden">
     <div class="modal-content">
+      <span id="close-btn">&times;</span>
       <h2 id="modal-category"></h2>
       <p id="modal-text"></p>
       <button id="modal-btn">Show Answer</button>
-      <button id="close-btn" class="secondary">Close</button>
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <script src="jeopardy.js"></script>
 </body>
 </html>

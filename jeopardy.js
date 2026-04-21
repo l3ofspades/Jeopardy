@@ -38,7 +38,7 @@ async function getAllCategories() {
 async function getRandomCategories() {
   const allCategories = await getAllCategories();
   const shuffled = shuffle([...allCategories]);
-  return shuffled.slice(0, NUM_CATEGORIES);
+  return shuffled;
 }
 
 /** Get questions for one category */
@@ -46,7 +46,13 @@ async function getQuestionsForCategory(categoryId) {
   const res = await fetch(
     `https://opentdb.com/api.php?amount=${NUM_QUESTIONS_PER_CAT}&category=${categoryId}&type=multiple`
   );
+
   const data = await res.json();
+
+  if (!data.results || !Array.isArray(data.results) || data.results.length !== NUM_QUESTIONS_PER_CAT) {
+    console.log("Skipping category with bad results:", categoryId, data);
+    return [];
+  }
 
   return data.results.map((q, index) => ({
     question: decodeText(q.question),
@@ -61,15 +67,26 @@ async function setupGameData() {
   statusText.textContent = "Loading categories and questions...";
   categories = [];
 
-  const chosenCategories = await getRandomCategories();
+  const allCategories = await getRandomCategories();
 
-  for (let cat of chosenCategories) {
+  for (let cat of allCategories) {
+    if (categories.length === NUM_CATEGORIES) break;
+
     const clues = await getQuestionsForCategory(cat.id);
 
-    categories.push({
-      title: decodeText(cat.name),
-      clues: clues
-    });
+    if (clues.length === NUM_QUESTIONS_PER_CAT) {
+      categories.push({
+        title: decodeText(cat.name),
+        clues: clues
+      });
+    }
+
+    // ✅ ADD THIS DELAY (VERY IMPORTANT)
+    await new Promise(res => setTimeout(res, 300));
+  }
+
+  if (categories.length < NUM_CATEGORIES) {
+    throw new Error("Could not load enough valid categories.");
   }
 }
 
@@ -77,20 +94,28 @@ async function setupGameData() {
 function renderBoard() {
   board.innerHTML = "";
 
-  // category headers
-  for (let category of categories) {
-    const catDiv = document.createElement("div");
-    catDiv.classList.add("category");
-    catDiv.textContent = category.title;
-    board.appendChild(catDiv);
+  // CATEGORY HEADERS
+  for (let cat of categories) {
+    const header = document.createElement("div");
+    header.classList.add("category");
+    header.textContent = cat.title;
+    board.appendChild(header);
   }
 
-  // clues
+  // CLUES
   for (let row = 0; row < NUM_QUESTIONS_PER_CAT; row++) {
     for (let col = 0; col < NUM_CATEGORIES; col++) {
-      const clue = categories[col].clues[row];
+      const clue = categories[col]?.clues[row];
+
       const clueDiv = document.createElement("div");
       clueDiv.classList.add("clue");
+
+      if (!clue) {
+        clueDiv.classList.add("used");
+        board.appendChild(clueDiv);
+        continue;
+      }
+
       clueDiv.textContent = `$${clue.value}`;
       clueDiv.dataset.col = col;
       clueDiv.dataset.row = row;
@@ -111,11 +136,11 @@ function renderBoard() {
 
 /** Handle clue click */
 function handleClueClick(evt) {
-  const col = evt.target.dataset.col;
-  const row = evt.target.dataset.row;
-  const clue = categories[col].clues[row];
+  const col = Number(evt.target.dataset.col);
+  const row = Number(evt.target.dataset.row);
+  const clue = categories[col]?.clues[row];
 
-  if (clue.showing === "used") return;
+  if (!clue || clue.showing === "used") return;
 
   currentClue = clue;
   showingAnswer = false;
